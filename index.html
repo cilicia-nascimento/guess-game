@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Next Scene</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: a darkened screening room. Host = a big screen with the clip front and centre; phones = one column. Single dark theme by choice. */
+:root {
+  --ink: #120b0e;
+  --velvet: #2a1419;
+  --velvet-2: #3a1d23;
+  --line: #57303a;
+  --bulb: #f2b33d;
+  --bulb-dim: #8a6524;
+  --cream: #f4e9d8;
+  --muted: #b89c95;
+  --ok: #7fd1a3;
+  --blood: #e0584f;
+  --f-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --f-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--ink); color: var(--cream); font-family: var(--f-body); font-size: 16px; line-height: 1.5; padding-inline: 16px; padding-block: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 22px; box-sizing: border-box; }
+h1, h2, h3 { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; line-height: .95; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--bulb); outline-offset: 3px; }
+.strip { height: 14px; background: radial-gradient(circle at 50% 50%, var(--ink) 3px, transparent 3.5px) 0 0/22px 14px, var(--velvet-2); border-radius: 3px; }
+.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-size: 34px; font-weight: 900; color: var(--bulb); }
+.tc { font-family: var(--f-mono); font-size: 13px; color: var(--muted); letter-spacing: .08em; }
+.marquee { font-size: clamp(56px, 13vw, 140px); font-weight: 900; }
+.marquee span { color: var(--bulb); text-shadow: 0 0 24px rgba(242,179,61,.35); }
+.lede { color: var(--muted); max-width: 56ch; font-size: 17px; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); font-weight: 600; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.choice { text-align: left; background: var(--velvet); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.choice:hover { border-color: var(--bulb-dim); }
+.choice h2 { font-size: 30px; color: var(--bulb); }
+.choice p { color: var(--muted); }
+.btn { background: var(--bulb); color: var(--ink); border: 0; border-radius: 999px; padding: 12px 22px; font-weight: 600; font-size: 16px; white-space: nowrap; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--cream); border: 1px solid var(--line); }
+.btn.sm { padding: 7px 14px; font-size: 14px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field input, .field textarea, .field select { background: var(--velvet); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 16px; width: 100%; box-sizing: border-box; }
+.field textarea { resize: vertical; min-height: 120px; }
+.code { font-family: var(--f-mono); font-weight: 700; letter-spacing: .2em; color: var(--bulb); }
+.note { background: var(--velvet); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--muted); font-size: 14px; }
+.note.warn { border-color: var(--bulb-dim); color: var(--cream); }
+.small { font-size: 14px; color: var(--muted); }
+
+/* setup playlist */
+.setuphead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.joinbox { text-align: right; }
+.joinbox .code { font-size: clamp(34px, 5vw, 60px); line-height: 1; }
+.list { display: flex; flex-direction: column; gap: 10px; }
+.round { background: var(--velvet); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.round.done { opacity: .55; }
+.round .num { font-family: var(--f-mono); font-size: 22px; font-weight: 700; color: var(--bulb); font-variant-numeric: tabular-nums; }
+.round .title { font-family: var(--f-display); font-size: 26px; font-weight: 800; text-transform: uppercase; line-height: 1; }
+.round .scene { color: var(--muted); font-size: 14px; }
+.round .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.round .meta b { color: var(--cream); font-weight: 500; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; }
+.pill.ok { border-color: var(--ok); color: var(--ok); }
+.pill.no { border-color: var(--blood); color: var(--blood); }
+.round .acts { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+@media (max-width: 640px) { .round { grid-template-columns: 30px minmax(0,1fr); } .round .acts { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; } }
+
+.editor { background: var(--velvet-2); border: 1px solid var(--bulb-dim); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+.editor .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.editor video { width: 100%; max-height: 360px; background: #000; border-radius: 8px; }
+
+/* live */
+.livehead { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 16px; align-items: end; }
+.movie { font-size: clamp(36px, 6vw, 76px); font-weight: 800; overflow-wrap: anywhere; }
+.prompt { font-size: 20px; color: var(--cream); max-width: 70ch; }
+.stage { position: relative; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; max-height: 72vh; margin-inline: auto; width: 100%; }
+.stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.stage .over { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px; background: rgba(18,11,14,.62); }
+.stage .over .big { font-size: clamp(40px, 8vw, 110px); }
+.stage .noclip { color: var(--muted); font-size: 18px; }
+.stage:fullscreen { max-height: none; border-radius: 0; }
+.big { font-family: var(--f-display); font-size: 40px; font-weight: 800; text-transform: uppercase; color: var(--bulb); line-height: 1; }
+.status { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-block: 1px solid var(--line); padding-block: 12px; }
+.clock { font-family: var(--f-mono); font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.clock.low { color: var(--bulb); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: var(--velvet); border: 1px solid var(--line); font-weight: 500; }
+.chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.chip.in { border-color: var(--ok); }
+.chip.in .dot { background: var(--ok); }
+.guesses { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.guess { text-align: left; background: var(--cream); color: var(--ink); border: 0; border-radius: 6px; padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; animation: drop .45s ease-out both; }
+.guess .txt { font-size: 21px; line-height: 1.35; overflow-wrap: anywhere; }
+.guess .who { font-family: var(--f-mono); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: #6a4a4a; display: flex; justify-content: space-between; gap: 8px; }
+.guess.win { box-shadow: 0 0 0 4px var(--bulb), 0 0 30px rgba(242,179,61,.35); }
+.guess .star { color: #b07a12; font-weight: 700; }
+@keyframes drop { from { transform: translateY(-10px) rotate(-1deg); opacity: .2; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .guess { animation: none; } }
+.scores { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--f-mono); font-size: 15px; color: var(--muted); }
+.scores b { color: var(--cream); }
+.empty { color: var(--muted); padding: 20px 0; font-size: 18px; }
+
+/* player */
+.card { background: var(--velvet); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card .movie { font-size: 36px; }
+.lock { font-size: 14px; color: var(--ok); }
+</style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <h1>Next Scene</h1>
+    <span class="tc" id="brandTc">00:00:00:00</span>
+  </div>
+  <div class="strip" aria-hidden="true"></div>
+  <div id="connNote" class="note warn" hidden></div>
+
+  <!-- HOME -->
+  <section id="home" style="display:flex;flex-direction:column;gap:24px">
+    <h2 class="marquee">What happens <span>next?</span></h2>
+    <p class="lede">The clip plays on the big screen and freezes right before the moment. Everyone types their guess on their phone, the guesses go up on screen, then the clip plays on and you see who called it.</p>
+    <div class="choices">
+      <button class="choice" id="goHost" type="button">
+        <span class="label">On the computer hooked to the TV</span>
+        <h2>Run the screen</h2>
+        <p>Load your clips, show the room code, play the rounds.</p>
+      </button>
+      <button class="choice" id="goJoin" type="button">
+        <span class="label">On your phone</span>
+        <h2>Join the game</h2>
+        <p>Enter the room code from the big screen and type your guesses.</p>
+      </button>
+    </div>
+  </section>
+
+  <!-- HOST SETUP -->
+  <section id="hostSetup" hidden style="display:flex;flex-direction:column;gap:20px">
+    <div class="setuphead">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="label">Tonight's lineup</span>
+        <h2 style="font-size:46px">The playlist</h2>
+        <p class="small" id="setupPlayers">No players yet. Share the room code.</p>
+      </div>
+      <div class="joinbox">
+        <span class="label">Room code</span>
+        <div class="code" id="setupCode">----</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label class="btn" for="multiFile" style="display:inline-block">Load clips from computer</label>
+      <input type="file" id="multiFile" accept="video/*" multiple hidden>
+      <button class="btn ghost" id="addRound" type="button">Add a round</button>
+      <span class="small" id="loadMsg">Pick all your clip files at once. They're matched to rounds by file name, and you can fix any by hand.</span>
+    </div>
+    <p class="note">Clips play only on this computer and are never uploaded. You'll need to load them again if you reload the page. For each round, open <b>Edit</b>, scrub the clip to the frame right before the moment, and press <b>Pause here</b>.</p>
+
+    <div id="editor" class="editor" hidden></div>
+    <div id="list" class="list"></div>
+
+    <div class="row">
+      <button class="btn" id="startBtn" type="button">Start round 1</button>
+      <button class="btn ghost" id="resetScores" type="button">Reset scores</button>
+      <span class="small" id="resetConfirm" hidden>Clear all points? <button class="btn sm" id="resetYes" type="button">Yes, clear</button> <button class="btn ghost sm" id="resetNo" type="button">Keep</button></span>
+    </div>
+    <div id="setupScores" class="scores"></div>
+  </section>
+
+  <!-- HOST LIVE -->
+  <section id="hostLive" hidden style="display:flex;flex-direction:column;gap:18px">
+    <div class="livehead">
+      <div style="min-width:0;display:flex;flex-direction:column;gap:6px">
+        <span class="label">Round <span id="liveRound">1</span> of <span id="liveTotal">1</span></span>
+        <div class="movie" id="liveMovie"></div>
+      </div>
+      <div class="joinbox">
+        <span class="label">Join with code</span>
+        <div class="code" id="liveCode">----</div>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <video id="vid" playsinline preload="auto"></video>
+      <div class="over" id="over"></div>
+    </div>
+
+    <p class="prompt" id="livePrompt" hidden></p>
+
+    <div class="status">
+      <div class="clock" id="clock" hidden>1:00</div>
+      <div id="phaseText" class="big" style="font-size:30px"></div>
+      <div class="row" id="controls"></div>
+    </div>
+
+    <div id="chips" class="chips"></div>
+    <p class="small" id="awardHint" hidden>Tap the guesses that got it right to give them a point. Tap again to take it back.</p>
+    <div id="guesses" class="guesses" hidden></div>
+    <div id="liveScores" class="scores"></div>
+  </section>
+
+  <!-- JOIN -->
+  <section id="join" hidden style="display:flex;flex-direction:column;gap:20px">
+    <h2 style="font-size:44px">Join the game</h2>
+    <form id="joinForm" style="display:grid;gap:16px;max-width:520px">
+      <div class="field">
+        <label class="label" for="jCode">Room code</label>
+        <input id="jCode" maxlength="4" required placeholder="ABCD" autocomplete="off" autocapitalize="characters" style="font-family:var(--f-mono);letter-spacing:.3em;text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label class="label" for="jNick">Your name</label>
+        <input id="jNick" maxlength="20" required placeholder="Sam" autocomplete="off">
+      </div>
+      <div class="row">
+        <button class="btn" type="submit" id="joinBtn">Join</button>
+        <span class="small" id="joinMsg"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="row" style="justify-content:space-between">
+      <span class="label">Playing as <b id="pNick" style="color:var(--cream)"></b> · room <span class="code" id="pCode"></span></span>
+      <span class="small" id="pScore">0 pts</span>
+    </div>
+    <div id="pWait" class="card">
+      <div class="big" id="pWaitBig">Hold tight</div>
+      <p class="small" id="pWaitMsg">Waiting for the host to start.</p>
+    </div>
+    <form id="pRound" class="card" hidden>
+      <span class="label">Round <span id="pRoundN">1</span></span>
+      <div class="movie" id="pMovie"></div>
+      <p id="pPrompt" hidden></p>
+      <div class="field">
+        <label class="label" for="pGuess">What happens next?</label>
+        <textarea id="pGuess" maxlength="280" placeholder="Describe what happens"></textarea>
+      </div>
+      <div class="row">
+        <button class="btn" type="submit" id="pLockBtn">Lock in guess</button>
+        <span class="lock" id="pLocked" hidden>Locked in. You can still change it.</span>
+      </div>
+    </form>
+    <div id="pReveal" class="card" hidden>
+      <div class="big">Eyes on the screen</div>
+      <p class="small">Your guess:</p>
+      <p id="pMine" style="font-size:18px;overflow-wrap:anywhere"></p>
+      <p class="lock" id="pWon" hidden>You got a point this round.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+  const views = ["home", "hostSetup", "hostLive", "join", "play"];
+  const show = v => { views.forEach(x => $(x).hidden = x !== v); window.scrollTo(0, 0); };
+  const clean = (s, n) => String(s == null ? "" : s).replace(/[\u0000-\u0008\u000b-\u001f\u007f​-‏‪-‮⁠-⁤﻿]/g, "").slice(0, n);
+  const fmt = s => { s = Math.max(0, Math.round(+s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+  const parseTime = t => { const p = String(t || "").trim().split(":").map(Number); if (!p.length || p.some(isNaN)) return null; return p.reduce((a, b) => a * 60 + b, 0); };
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+  const connNote = $("connNote");
+  function noLive(msg) { connNote.textContent = msg || "Couldn't load the connection service. Check the internet connection and reload the page."; connNote.hidden = false; }
+  const HOST_ID = c => "nextscene-" + c.toLowerCase() + "-host";
+  const roomReady = Promise.resolve(window.Peer ? {} : null);
+
+  // Host side: phones connect to us; we keep each phone's latest "presence" and broadcast our own state.
+  function hostRoom(code) {
+    return new Promise((resolve, reject) => {
+      let tries = 0, hostState = {}, handlers = [];
+      const players = new Map(), conns = new Set();
+      const emit = () => { const peers = [...players.values()].map(p => ({ presence: p })); handlers.forEach(h => h({ peers })); };
+      const api = {
+        presence(patch) { hostState = { ...hostState, ...patch }; conns.forEach(c => { try { c.open && c.send({ t: "host", p: hostState }); } catch {} }); return Promise.resolve(); },
+        onPeers(fn) { handlers.push(fn); setTimeout(emit, 0); return () => {}; }
+      };
+      const open = () => {
+        const peer = new Peer(HOST_ID(code));
+        peer.on("open", () => resolve(api));
+        peer.on("connection", conn => {
+          conns.add(conn);
+          conn.on("open", () => { try { conn.send({ t: "host", p: hostState }); } catch {} });
+          conn.on("data", d => {
+            if (!d || d.t !== "p" || typeof d.p !== "object" || !d.p) return;
+            players.set(conn.peer, { role: "player", nick: String(d.p.nick || "").slice(0, 20), guess: String(d.p.guess || "").slice(0, 280), round: +d.p.round || 0 });
+            emit();
+          });
+          const gone = () => { conns.delete(conn); players.delete(conn.peer); emit(); };
+          conn.on("close", gone); conn.on("error", gone);
+        });
+        peer.on("disconnected", () => { try { peer.reconnect(); } catch {} });
+        peer.on("error", err => {
+          if (err && err.type === "unavailable-id" && tries++ < 6) { try { peer.destroy(); } catch {} setTimeout(open, 3000); }
+          else if (err && (err.type === "unavailable-id" || err.type === "network" || err.type === "server-error" || err.type === "socket-error")) reject(err);
+        });
+      };
+      open();
+    });
+  }
+
+  // Phone side: connect to the host, send our presence, hear the host's state. Reconnects if the link drops.
+  function playerRoom(code) {
+    return new Promise((resolve, reject) => {
+      let mine = {}, handlers = [], conn = null, settled = false, hostState = null;
+      const emit = () => { const peers = hostState ? [{ presence: hostState }] : []; handlers.forEach(h => h({ peers })); };
+      const api = {
+        presence(patch) { mine = { ...mine, ...patch }; try { if (conn && conn.open) conn.send({ t: "p", p: mine }); } catch { return Promise.reject(new Error("send")); } return conn && conn.open ? Promise.resolve() : Promise.reject(new Error("offline")); },
+        onPeers(fn) { handlers.push(fn); setTimeout(emit, 0); return () => {}; }
+      };
+      const peer = new Peer();
+      const connect = () => {
+        conn = peer.connect(HOST_ID(code), { reliable: true });
+        conn.on("open", () => { try { conn.send({ t: "p", p: mine }); } catch {} if (!settled) { settled = true; resolve(api); } });
+        conn.on("data", d => { if (d && d.t === "host" && d.p && typeof d.p === "object") { hostState = d.p; emit(); } });
+        conn.on("close", () => { hostState = null; emit(); if (settled) setTimeout(connect, 3000); });
+      };
+      peer.on("open", connect);
+      peer.on("disconnected", () => { try { peer.reconnect(); } catch {} });
+      peer.on("error", err => {
+        if (!settled) { settled = true; try { peer.destroy(); } catch {} reject(err); }
+        else if (err && err.type === "peer-unavailable") setTimeout(connect, 3000);
+      });
+      setTimeout(() => { if (!settled) { settled = true; try { peer.destroy(); } catch {} reject(new Error("timeout")); } }, 12000);
+    });
+  }
+
+  const tcEl = $("brandTc"); let fr = 0;
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(() => { fr++; const f = fr % 24, s = Math.floor(fr / 24);
+    tcEl.textContent = `00:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}:${String(f).padStart(2, "0")}`; }, 1000 / 24);
+
+  // ================= PLAYLIST =================
+  const DEFAULT = [
+    { movie: "Friday the 13th Part VII: The New Blood", scene: "Sleeping bag", keys: "friday 13th jason new blood sleeping bag" },
+    { movie: "Killer Klowns from Outer Space", scene: "Shadow puppets", keys: "killer klowns shadow puppet" },
+    { movie: "Sharknado 2: The Second One", scene: "Chainsaw", keys: "sharknado chainsaw" },
+    { movie: "The Monkey", scene: "Opening kill", keys: "monkey opening" },
+    { movie: "Evil Dead II", scene: "Everything laughing", keys: "evil dead laughing laugh" },
+    { movie: "A Nightmare on Elm Street", scene: "Freddy on the phone", keys: "nightmare elm phone mouth freddy" },
+    { movie: "Killer Klowns from Outer Space", scene: "Jojo", keys: "killer klowns jojo" },
+    { movie: "Gremlins", scene: "Kitchen: three gremlins", keys: "gremlins kitchen", prompt: "Mom is alone in the kitchen with three gremlins. What happens to each one?" },
+    { movie: "A Nightmare on Elm Street", scene: "Glen's death", keys: "nightmare elm glen bed" },
+    { movie: "Jason X", scene: "Liquid nitrogen", keys: "jason x nitrogen" }
+  ];
+  let uid = 1;
+  const mk = r => ({ id: uid++, movie: r.movie || "", scene: r.scene || "", prompt: r.prompt || "", keys: r.keys || "", pauseAt: r.pauseAt ?? null, timer: r.timer ?? 60 });
+  const savedList = store.get("ns-playlist");
+  let rounds = (Array.isArray(savedList) && savedList.length ? savedList : DEFAULT).map(mk);
+  const clips = new Map(); // id -> {url, name}
+  function savePlaylist() { store.set("ns-playlist", rounds.map(({ movie, scene, prompt, keys, pauseAt, timer }) => ({ movie, scene, prompt, keys, pauseAt, timer }))); }
+
+  // ================= HOST =================
+  const H = { room: null, code: null, idx: 0, round: 0, phase: "lobby", endsAt: 0, awards: {}, peers: [], played: [] };
+  const savedHost = store.get("ns-host") || {};
+  function persistHost() { store.set("ns-host", { code: H.code, idx: H.idx, round: H.round, awards: H.awards, played: H.played }); }
+  function scores() { const s = {}; Object.values(H.awards).forEach(l => l.forEach(n => s[n] = (s[n] || 0) + 1)); return s; }
+  const cur = () => rounds[H.idx];
+  function hostPresence() {
+    if (!H.room) return;
+    const r = cur() || {};
+    H.room.presence({
+      role: "host", round: H.round, phase: H.phase, movie: clean(r.movie, 100), note: clean(r.prompt, 200),
+      endsAt: H.endsAt || 0, awards: (H.awards[H.round] || []).slice(0, 40), scores: scores()
+    }).catch(() => {});
+  }
+  function players() {
+    const seen = new Map();
+    for (const p of H.peers) {
+      const pr = p.presence || {}; if (pr.role !== "player") continue;
+      const nick = clean(pr.nick, 20).trim(); if (!nick) continue;
+      seen.set(nick, { nick, guess: pr.round === H.round ? clean(pr.guess, 280).trim() : "" });
+    }
+    return [...seen.values()];
+  }
+  function renderScores(box) {
+    box.replaceChildren();
+    const s = Object.entries(scores()).sort((a, b) => b[1] - a[1]);
+    if (!s.length) return;
+    box.append(el("span", "label", "Scoreboard"));
+    s.forEach(([n, v]) => { const d = el("span"); d.append(el("b", null, n), ` ${v}`); box.append(d); });
+  }
+
+  // ---- setup view
+  let editingId = null;
+  function renderSetup() {
+    const ps = players();
+    $("setupCode").textContent = $("liveCode").textContent = H.code || "----";
+    $("setupPlayers").textContent = ps.length ? `${ps.length} player${ps.length > 1 ? "s" : ""} in: ${ps.map(p => p.nick).join(", ")}` : "No players yet. Share the room code.";
+    renderScores($("setupScores"));
+    const list = $("list"); list.replaceChildren();
+    rounds.forEach((r, i) => {
+      const c = clips.get(r.id);
+      const row = el("div", "round" + (H.played.includes(r.id) ? " done" : ""));
+      row.append(el("div", "num", String(i + 1).padStart(2, "0")));
+      const mid = el("div"); mid.style.minWidth = "0";
+      mid.append(el("div", "title", r.movie || "Untitled"), el("div", "scene", r.scene ? `Scene: ${r.scene} (only you see this)` : ""));
+      const meta = el("div", "meta");
+      meta.append(el("span", "pill " + (c ? "ok" : "no"), c ? `Clip: ${c.name}` : "No clip loaded"));
+      const pa = el("span"); pa.append("Pauses at ", el("b", null, r.pauseAt != null ? fmt(r.pauseAt) : "your click")); meta.append(pa);
+      const tm = el("span"); tm.append("Guess time ", el("b", null, r.timer ? fmt(r.timer) : "no timer")); meta.append(tm);
+      if (H.played.includes(r.id)) meta.append(el("span", "pill", "Played"));
+      mid.append(meta);
+      const acts = el("div", "acts");
+      const play = el("button", "btn sm", "Play this round"); play.type = "button"; play.onclick = () => startRound(i);
+      const edit = el("button", "btn ghost sm", editingId === r.id ? "Close" : "Edit"); edit.type = "button";
+      edit.onclick = () => { editingId = editingId === r.id ? null : r.id; renderSetup(); };
+      acts.append(play, edit);
+      row.append(mid, acts);
+      list.append(row);
+    });
+    const next = rounds.findIndex(r => !H.played.includes(r.id));
+    $("startBtn").textContent = next < 0 ? "All rounds played" : `Start round ${next + 1}`;
+    $("startBtn").disabled = next < 0;
+    renderEditor();
+  }
+  function renderEditor() {
+    const box = $("editor");
+    const r = rounds.find(x => x.id === editingId);
+    if (!r) { box.hidden = true; box.replaceChildren(); return; }
+    if (box.dataset.for === String(r.id) && !box.hidden) return;
+    box.dataset.for = r.id; box.hidden = false; box.replaceChildren();
+    const i = rounds.indexOf(r);
+    box.append(el("span", "label", `Editing round ${i + 1}`));
+    const grid = el("div", "grid");
+    const fld = (lab, id, val, ph) => { const f = el("div", "field"); const l = el("label", "label", lab); l.htmlFor = id; const inp = el("input"); inp.id = id; inp.value = val; inp.placeholder = ph || ""; inp.autocomplete = "off"; f.append(l, inp); grid.append(f); return inp; };
+    const mv = fld("Movie (shown on screen)", "eMovie", r.movie, "Gremlins");
+    const sc = fld("Scene note (only you see this)", "eScene", r.scene, "Kitchen");
+    const pr = fld("Prompt for players (optional)", "ePrompt", r.prompt, "What happens next?");
+    const pa = fld("Pause at (m:ss in clip)", "ePause", r.pauseAt != null ? fmt(r.pauseAt) : "", "Leave blank to pause by hand");
+    const tf = el("div", "field"); const tl = el("label", "label", "Guessing time"); tl.htmlFor = "eTimer";
+    const ts = el("select"); ts.id = "eTimer";
+    [[0, "No timer"], [45, "45 seconds"], [60, "60 seconds"], [90, "90 seconds"], [120, "2 minutes"]].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; if (+v === +r.timer) o.selected = true; ts.append(o); });
+    tf.append(tl, ts); grid.append(tf);
+    box.append(grid);
+
+    const clipRow = el("div", "row");
+    const pick = el("label", "btn ghost sm", clips.get(r.id) ? "Change clip" : "Choose clip"); pick.htmlFor = "eFile"; pick.style.display = "inline-block";
+    const fi = el("input"); fi.type = "file"; fi.accept = "video/*"; fi.id = "eFile"; fi.hidden = true;
+    clipRow.append(pick, fi, el("span", "small", clips.get(r.id) ? clips.get(r.id).name : "No clip loaded"));
+    box.append(clipRow);
+
+    const v = el("video"); v.controls = true; v.playsInline = true; v.preload = "metadata";
+    const vmsg = el("p", "small");
+    if (clips.get(r.id)) { v.src = clips.get(r.id).url; box.append(v); }
+    v.onerror = () => { vmsg.textContent = "This browser can't play that file. MP4 (H.264) works almost everywhere."; };
+    const pauseRow = el("div", "row");
+    const ph = el("button", "btn sm", "Pause here"); ph.type = "button";
+    ph.onclick = () => { pa.value = fmt(v.currentTime); vmsg.textContent = `Pause point set to ${fmt(v.currentTime)}. Press Save.`; };
+    if (clips.get(r.id)) pauseRow.append(ph, el("span", "small", "Scrub to the frame right before the moment, then press this."));
+    box.append(pauseRow, vmsg);
+    fi.onchange = () => { const f = fi.files && fi.files[0]; if (!f) return; setClip(r.id, f); box.dataset.for = ""; renderSetup(); };
+
+    const actions = el("div", "row");
+    const save = el("button", "btn", "Save"); save.type = "button";
+    save.onclick = () => {
+      r.movie = clean(mv.value, 100).trim(); r.scene = clean(sc.value, 100).trim(); r.prompt = clean(pr.value, 200).trim();
+      r.pauseAt = pa.value.trim() ? parseTime(pa.value) : null; r.timer = +ts.value;
+      savePlaylist(); editingId = null; box.dataset.for = ""; renderSetup();
+    };
+    const up = el("button", "btn ghost sm", "Move up"); up.type = "button"; up.disabled = i === 0;
+    up.onclick = () => { rounds.splice(i - 1, 0, rounds.splice(i, 1)[0]); savePlaylist(); box.dataset.for = ""; renderSetup(); };
+    const dn = el("button", "btn ghost sm", "Move down"); dn.type = "button"; dn.disabled = i === rounds.length - 1;
+    dn.onclick = () => { rounds.splice(i + 1, 0, rounds.splice(i, 1)[0]); savePlaylist(); box.dataset.for = ""; renderSetup(); };
+    const del = el("button", "btn ghost sm", "Remove round"); del.type = "button";
+    del.onclick = () => { rounds.splice(i, 1); editingId = null; box.dataset.for = ""; savePlaylist(); renderSetup(); };
+    actions.append(save, up, dn, del);
+    box.append(actions);
+  }
+  function setClip(id, file) {
+    const old = clips.get(id); if (old) URL.revokeObjectURL(old.url);
+    clips.set(id, { url: URL.createObjectURL(file), name: file.name });
+  }
+  function words(s) { return String(s).toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3 || /^\d+$/.test(w) || w === "x"); }
+  $("multiFile").addEventListener("change", e => {
+    const files = [...(e.target.files || [])]; if (!files.length) return;
+    const free = rounds.filter(r => !clips.get(r.id));
+    const pairs = [];
+    files.forEach(f => { const fw = words(f.name.replace(/\.[^.]+$/, ""));
+      free.forEach(r => { const kw = new Set(words(r.keys + " " + r.movie + " " + r.scene)); let sc = 0; fw.forEach(w => { if (kw.has(w)) sc++; }); if (sc) pairs.push({ f, r, sc }); }); });
+    pairs.sort((a, b) => b.sc - a.sc);
+    const usedF = new Set(), usedR = new Set(); let n = 0;
+    pairs.forEach(({ f, r }) => { if (usedF.has(f) || usedR.has(r.id)) return; usedF.add(f); usedR.add(r.id); setClip(r.id, f); n++; });
+    const left = files.filter(f => !usedF.has(f));
+    left.forEach(f => { const r = rounds.find(x => !clips.get(x.id)); if (r) { setClip(r.id, f); usedF.add(f); } });
+    $("loadMsg").textContent = `Loaded ${files.length} clip${files.length > 1 ? "s" : ""}: ${n} matched by name${left.length ? `, ${left.length} put in empty rounds (check them)` : ""}.`;
+    e.target.value = ""; $("editor").dataset.for = ""; renderSetup();
+  });
+  $("addRound").addEventListener("click", () => { const r = mk({ movie: "", scene: "" }); rounds.push(r); editingId = r.id; savePlaylist(); $("editor").dataset.for = ""; renderSetup(); $("editor").scrollIntoView({ behavior: "smooth" }); });
+  $("startBtn").addEventListener("click", () => { const n = rounds.findIndex(r => !H.played.includes(r.id)); if (n >= 0) startRound(n); });
+  $("resetScores").addEventListener("click", () => { $("resetConfirm").hidden = false; });
+  $("resetNo").addEventListener("click", () => { $("resetConfirm").hidden = true; });
+  $("resetYes").addEventListener("click", () => { H.awards = {}; H.played = []; $("resetConfirm").hidden = true; persistHost(); hostPresence(); renderSetup(); });
+
+  // ---- live view
+  const vid = $("vid");
+  let clockInt = null;
+  function startRound(i) {
+    H.idx = i; H.round += 1; editingId = null;
+    const r = cur(), c = clips.get(r.id);
+    vid.pause(); vid.removeAttribute("src"); vid.load();
+    if (c) { vid.src = c.url; vid.currentTime = 0; H.phase = "ready"; } else { H.phase = "guessing"; startTimer(); }
+    if (!H.played.includes(r.id)) H.played.push(r.id);
+    persistHost(); show("hostLive"); hostPresence(); renderLive();
+  }
+  function startTimer() {
+    const t = cur().timer; H.endsAt = t ? Date.now() + t * 1000 : 0; runClock();
+  }
+  function runClock() {
+    clearInterval(clockInt); const c = $("clock");
+    if (!H.endsAt) { c.hidden = true; return; }
+    c.hidden = false;
+    const tick = () => { const left = Math.max(0, Math.ceil((H.endsAt - Date.now()) / 1000));
+      c.textContent = fmt(left); c.classList.toggle("low", left <= 10);
+      if (left <= 0) { clearInterval(clockInt); if (H.phase === "guessing") setPhase("reveal"); } };
+    tick(); clockInt = setInterval(tick, 250);
+  }
+  function setPhase(p) {
+    H.phase = p;
+    if (p !== "guessing") { H.endsAt = 0; clearInterval(clockInt); $("clock").hidden = true; }
+    hostPresence(); renderLive();
+  }
+  function freeze() { vid.pause(); setPhase("guessing"); startTimer(); hostPresence(); }
+  vid.addEventListener("timeupdate", () => {
+    const r = cur(); if (H.phase === "watching" && r && r.pauseAt != null && vid.currentTime >= r.pauseAt) { vid.currentTime = r.pauseAt; freeze(); }
+  });
+  vid.addEventListener("ended", () => { if (H.phase === "answer") setPhase("scoring"); else if (H.phase === "watching") freeze(); });
+  vid.addEventListener("error", () => { if (H.phase === "ready" || H.phase === "watching") { $("over").replaceChildren(el("p", "noclip", "This clip won't play in the browser. Play it in your video player instead, then use the buttons below.")); } });
+
+  function btn(txt, fn, ghost) { const b = el("button", "btn" + (ghost ? " ghost" : ""), txt); b.type = "button"; b.onclick = fn; return b; }
+  function renderLive() {
+    const r = cur(); if (!r) return;
+    const hasClip = !!clips.get(r.id);
+    const ps = players();
+    $("liveRound").textContent = H.idx + 1; $("liveTotal").textContent = rounds.length;
+    $("liveMovie").textContent = r.movie; $("liveCode").textContent = H.code || "----";
+    $("livePrompt").textContent = r.prompt; $("livePrompt").hidden = !(r.prompt && H.phase === "guessing");
+    renderScores($("liveScores"));
+
+    const over = $("over"); over.replaceChildren(); over.hidden = false;
+    if (!hasClip) {
+      over.append(el("div", "big", H.phase === "guessing" ? "What happens next?" : r.movie), el("p", "noclip", "No clip loaded for this round. Use your TV remote or player, and the buttons below."));
+    } else if (H.phase === "ready") {
+      over.append(el("div", "big", r.movie), el("p", "noclip", "Press Play clip when everyone's ready."));
+    } else if (H.phase === "watching" || H.phase === "answer") {
+      over.hidden = true;
+    } else if (H.phase === "guessing") {
+      over.append(el("div", "big", "What happens next?"));
+    } else if (H.phase === "reveal") {
+      over.append(el("div", "big", "The guesses are in"));
+    } else if (H.phase === "scoring") {
+      over.append(el("div", "big", "Who called it?"));
+    }
+
+    const inCount = ps.filter(p => p.guess).length;
+    const pt = $("phaseText");
+    pt.textContent = { ready: "Get ready", watching: "Watch closely", guessing: `${inCount} of ${ps.length} guess${ps.length === 1 ? "" : "es"} in`, reveal: "Reveal", answer: "Here's what happened", scoring: "Award points" }[H.phase] || "";
+
+    const ctl = $("controls"); ctl.replaceChildren();
+    const fs = btn("Full screen", () => { const s = $("stage"); (s.requestFullscreen ? s.requestFullscreen() : Promise.reject()).catch(() => {}); }, true);
+    if (H.phase === "ready") ctl.append(btn("Play clip", () => { setPhase("watching"); vid.play().catch(() => {}); }), fs);
+    if (H.phase === "watching") ctl.append(btn("Pause & guess now", freeze), fs);
+    if (H.phase === "guessing") ctl.append(btn("Reveal guesses", () => setPhase("reveal")));
+    if (H.phase === "reveal") ctl.append(hasClip ? btn("Play what happens", () => { setPhase("answer"); vid.play().catch(() => {}); }) : btn("We watched it", () => setPhase("scoring")));
+    if (H.phase === "answer") ctl.append(btn("Pause", () => vid.paused ? vid.play().catch(() => {}) : vid.pause(), true), btn("Done watching", () => { vid.pause(); setPhase("scoring"); }), fs);
+    if (H.phase === "scoring") {
+      const nxt = rounds.findIndex(x => !H.played.includes(x.id));
+      if (nxt >= 0) ctl.append(btn(`Next: round ${nxt + 1}`, () => startRound(nxt)));
+      ctl.append(btn("Back to playlist", () => { vid.pause(); H.phase = "lobby"; hostPresence(); show("hostSetup"); renderSetup(); }, nxt >= 0));
+    }
+    if (H.phase !== "scoring") ctl.append(btn("Playlist", () => { vid.pause(); H.phase = "lobby"; clearInterval(clockInt); hostPresence(); show("hostSetup"); renderSetup(); }, true));
+
+    const chips = $("chips"); chips.replaceChildren();
+    chips.hidden = !["ready", "watching", "guessing"].includes(H.phase);
+    ps.forEach(p => { const c = el("span", "chip" + (H.phase === "guessing" && p.guess ? " in" : "")); c.append(el("span", "dot"), p.nick); chips.append(c); });
+
+    const showCards = H.phase === "reveal" || H.phase === "scoring";
+    $("guesses").hidden = !showCards; $("awardHint").hidden = H.phase !== "scoring";
+    if (showCards) {
+      const g = $("guesses"); g.replaceChildren();
+      const withGuess = ps.filter(p => p.guess);
+      if (!withGuess.length) g.append(el("p", "empty", "Nobody locked in a guess this round."));
+      const won = new Set(H.awards[H.round] || []);
+      withGuess.forEach(p => {
+        const b = el("button", "guess" + (won.has(p.nick) ? " win" : "")); b.type = "button";
+        b.setAttribute("aria-pressed", won.has(p.nick));
+        const w = el("div", "who"); w.append(el("span", null, p.nick), el("span", "star", won.has(p.nick) ? "+1 point" : ""));
+        b.append(el("div", "txt", p.guess), w);
+        b.onclick = () => { const s = new Set(H.awards[H.round] || []); s.has(p.nick) ? s.delete(p.nick) : s.add(p.nick); H.awards[H.round] = [...s]; persistHost(); hostPresence(); renderLive(); };
+        g.append(b);
+      });
+    }
+  }
+  function renderHost() { if (!$("hostSetup").hidden) renderSetup(); else if (!$("hostLive").hidden && !["watching", "answer"].includes(H.phase)) renderLive(); else if (!$("hostLive").hidden) { renderScores($("liveScores")); } }
+
+  async function startHost() {
+    if (savedHost.code && /^[A-Z]{4}$/.test(savedHost.code)) {
+      H.code = savedHost.code; H.round = savedHost.round || 0; H.awards = savedHost.awards || {}; H.played = [];
+    } else {
+      const L = "ABCDEFGHJKLMNPQRSTUVWXYZ"; H.code = Array.from({ length: 4 }, () => L[Math.floor(Math.random() * L.length)]).join("");
+    }
+    persistHost(); show("hostSetup"); renderSetup();
+    const room = await roomReady;
+    if (!room) { noLive(); return; }
+    try { H.room = await hostRoom(H.code); }
+    catch (e) { noLive("Couldn't open the room (" + (e && e.type || "connection error") + "). Reload to try again."); return; }
+    H.room.onPeers(ch => { H.peers = ch.peers; renderHost(); }, e => noLive("The live connection closed (" + e.code + "). Reload to reconnect."));
+    hostPresence();
+    try { navigator.wakeLock && navigator.wakeLock.request("screen").catch(() => {}); } catch {}
+  }
+
+  // ================= PLAYER =================
+  const P = { room: null, code: "", nick: "", host: null, guess: "", guessRound: 0 };
+  const lastJoin = store.get("ns-player") || {};
+  $("jCode").value = lastJoin.code || ""; $("jNick").value = lastJoin.nick || "";
+  function findHost(peers) { let best = null; for (const p of peers) { const pr = p.presence || {}; if (pr.role === "host" && (!best || (pr.round || 0) >= (best.presence.round || 0))) best = p; } return best ? best.presence : null; }
+  function renderPlayer() {
+    const h = P.host;
+    $("pNick").textContent = P.nick; $("pCode").textContent = P.code;
+    const sc = h && h.scores && typeof h.scores === "object" ? (+h.scores[P.nick] || 0) : 0;
+    $("pScore").textContent = `${sc} pt${sc === 1 ? "" : "s"}`;
+    const phase = h ? h.phase : null, round = h ? +h.round || 0 : 0;
+    const guessing = phase === "guessing", after = ["reveal", "answer", "scoring"].includes(phase);
+    $("pWait").hidden = guessing || after; $("pRound").hidden = !guessing; $("pReveal").hidden = !after;
+    if (!h) { $("pWaitBig").textContent = "Hold tight"; $("pWaitMsg").textContent = "Looking for the big screen. Check the room code if this takes more than a few seconds."; }
+    else if (phase === "ready" || phase === "watching") { $("pWaitBig").textContent = "Watch the screen"; $("pWaitMsg").textContent = `${clean(h.movie, 100)}. The clip will freeze, then it's your turn to guess.`; }
+    else if (!guessing && !after) { $("pWaitBig").textContent = "Hold tight"; $("pWaitMsg").textContent = round ? "The host is setting up the next clip." : "Waiting for the host to start."; }
+    if (guessing) {
+      if (P.guessRound !== round) { P.guessRound = round; P.guess = ""; $("pGuess").value = ""; $("pLocked").hidden = true; $("pLockBtn").textContent = "Lock in guess"; }
+      $("pRoundN").textContent = round; $("pMovie").textContent = clean(h.movie, 100);
+      $("pPrompt").textContent = clean(h.note, 200); $("pPrompt").hidden = !h.note;
+    }
+    if (after) {
+      $("pMine").textContent = P.guessRound === round && P.guess ? P.guess : "You didn't lock in a guess this round.";
+      $("pWon").hidden = !(Array.isArray(h.awards) && h.awards.includes(P.nick));
+    }
+  }
+  $("joinForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const code = $("jCode").value.toUpperCase().replace(/[^A-Z]/g, ""), nick = clean($("jNick").value, 20).trim();
+    if (code.length !== 4 || !nick) { $("joinMsg").textContent = "Enter the 4-letter code and your name."; return; }
+    $("joinBtn").disabled = true; $("joinMsg").textContent = "Joining…";
+    const room = await roomReady;
+    if (!room) { $("joinBtn").disabled = false; $("joinMsg").textContent = ""; noLive(); return; }
+    try { P.room = await playerRoom(code); }
+    catch { $("joinBtn").disabled = false; $("joinMsg").textContent = "No game found with that code. Check the big screen and try again."; return; }
+    P.code = code; P.nick = nick; store.set("ns-player", { code, nick });
+    P.room.presence({ role: "player", nick, guess: "", round: 0 }).catch(() => {});
+    P.room.onPeers(ch => { P.host = findHost(ch.peers); renderPlayer(); }, e2 => noLive("The live connection closed (" + e2.code + "). Reload to rejoin."));
+    show("play"); renderPlayer();
+  });
+  $("pRound").addEventListener("submit", e => {
+    e.preventDefault();
+    const g = clean($("pGuess").value, 280).trim(); if (!g || !P.room || !P.host) return;
+    P.guess = g; P.guessRound = +P.host.round || 0;
+    P.room.presence({ role: "player", nick: P.nick, guess: g, round: P.guessRound })
+      .then(() => { $("pLocked").textContent = "Locked in. You can still change it."; $("pLocked").hidden = false; $("pLockBtn").textContent = "Update guess"; })
+      .catch(() => { $("pLocked").hidden = false; $("pLocked").textContent = "Couldn't send. Check your connection and try again."; });
+  });
+  $("pGuess").addEventListener("input", () => { $("pLocked").hidden = true; });
+
+  $("goHost").addEventListener("click", startHost);
+  $("goJoin").addEventListener("click", () => { show("join"); $($("jCode").value ? "jNick" : "jCode").focus(); });
+  show("home");
+})();
+</script>
+</body>
+</html>
